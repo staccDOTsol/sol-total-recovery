@@ -11,7 +11,7 @@ import {
 import SwapHoriz from '@material-ui/icons/SwapHoriz';
 import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
 import Swap from '@project-serum/swap-ui';
-import { AnchorProvider } from '@project-serum/anchor';
+import { Provider } from '@project-serum/anchor';
 import { useTokenInfos } from '../utils/tokens/names';
 import { useSendTransaction } from '../utils/notifications';
 import { useWallet } from '../utils/wallet';
@@ -117,7 +117,7 @@ function SwapButtonPopover({ size }) {
   );
 }
 
-class NotifyingProvider extends AnchorProvider {
+class NotifyingProvider extends Provider {
   constructor(
     connection,
     wallet,

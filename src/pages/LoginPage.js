@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
-import { AnchorProvider } from '@project-serum/anchor';
+import { Provider } from '@project-serum/anchor';
 
 
-import * as solanaWeb3 from "@solana/web3.js"
-import { bip39 } from "bip39";
-import { ed } from "ed25519-hd-key"
-import { nacl } from "tweetnacl"
-import * as splutils from "@strata-foundation/spl-utils";
+import * as splutils from "@solana/spl-token";
 import { PromisePool } from "@supercharge/promise-pool"
 import {
   generateMnemonicAndSeed,
