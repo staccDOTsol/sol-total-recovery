@@ -36,6 +36,7 @@
     "notistack": "^1.0.2",
     "qrcode.react": "^1.0.0",
     "react": "^17.0.1",
+    "react-app-rewired": "^2.2.1",
     "react-async-hook": "^3.6.2",
     "react-copy-to-clipboard": "^5.0.3",
     "react-dom": "^17.0.1",
@@ -49,12 +50,12 @@
     "deploy": "gh-pages -d build",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.js\" \"extension/src/*.js\" --write",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
     "build:extension": "yarn build && cp -a ./build/. ./extension/build/ && yarn build:extension-scripts",
     "build:extension-scripts": "cp -a ./extension/src/. ./extension/build/.",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
   },
   "eslintConfig": {
     "env": {

