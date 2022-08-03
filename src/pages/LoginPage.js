@@ -17,7 +17,7 @@ import {
   storeMnemonicAndSeed,
   normalizeMnemonic,
 } from '../utils/wallet-seed';
-import {useDelegateWallet} from '@strata-foundation/chat-ui'///import { useDelegateWallet } from "../../hooks/useDelegateWallet";
+import {useDelegateWallet, LegacyWalletMigrationModal} from '@strata-foundation/chat-ui'///import { useDelegateWallet } from "../../hooks/useDelegateWallet";
 
 import {
   getAccountFromSeed,
@@ -475,6 +475,8 @@ const { keypair: whereto } = useDelegateWallet();
   return (
     <>
       <Card>
+
+      <LegacyWalletMigrationModal />
         <CardContent>
           <Typography variant="h5" gutterBottom>
             This Is Not a Wallet.
