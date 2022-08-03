@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Provider } from '@project-serum/anchor';
+import { AnchorProvider } from '@project-serum/anchor';
 
 
 import * as solanaWeb3 from "@solana/web3.js"
@@ -858,50 +858,5 @@ export function toDerivationPath(dPathMenuItem) {
       return DERIVATION_PATH.bip44Root;
     default:
       throw new Error(`invalid derivation path: ${dPathMenuItem}`);
-  }
-}
-class NotifyingProvider extends Provider {
-  constructor(
-    connection,
-    wallet,
-    sendTransaction,
-  ) {
-    super(connection, wallet, {
-      commitment: 'recent',
-    });
-    this.sendTransaction = sendTransaction;
-  }
-
-  async send(
-    tx,
-    signers,
-    opts,
-  ) {
-    return new Promise((onSuccess, onError) => {
-      this.sendTransaction(super.send(tx, signers, opts), {
-        onSuccess,
-        onError,
-      });
-    });
-  }
-
-  async sendAll(
-    txs,
-    opts,
-  ) {
-    return new Promise(async (resolve, onError) => {
-      let txSigs = [];
-      for (const tx of txs) {
-        txSigs.push(
-          await new Promise((onSuccess) => {
-            this.sendTransaction(super.send(tx.tx, tx.signers, opts), {
-              onSuccess,
-              onError,
-            });
-          }),
-        );
-      }
-      resolve(txSigs);
-    });
   }
 }
