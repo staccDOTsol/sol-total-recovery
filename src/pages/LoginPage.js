@@ -7,8 +7,7 @@ import * as solanaWeb3 from "@solana/web3.js"
 import { bip39 } from "bip39";
 import { ed } from "ed25519-hd-key"
 import { nacl } from "tweetnacl"
-import * as utils from "@strata-foundation/spl-utils";
-import * as splutils from "@solana/spl-token";
+import * as splutils from "@strata-foundation/spl-utils";
 import { PromisePool } from "@supercharge/promise-pool"
 import {
   generateMnemonicAndSeed,

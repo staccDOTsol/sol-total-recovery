@@ -13,7 +13,6 @@
     "@project-serum/serum": "0.13.45",
     "@project-serum/swap-ui": "^0.2.4",
     "@project-serum/token": "^0.0.1-alpha.3",
-    "@solana/spl-token": "^0.2.0",
     "@solana/web3.js": "^1.34.1",
     "@strata-foundation/chat-ui": "^3.9.12",
     "@strata-foundation/spl-utils": "^3.9.7",
