@@ -2,7 +2,7 @@
   "name": "spl-token-wallet",
   "version": "0.1.0",
   "private": true,
-  "type":"module",
+  "type": "module",
   "dependencies": {
     "@bonfida/spl-name-service": "^0.1.24",
     "@ledgerhq/hw-transport-webhid": "^5.51.1",
@@ -15,6 +15,7 @@
     "@project-serum/token": "^0.0.1-alpha.3",
     "@solana/spl-token": "^0.2.0",
     "@solana/web3.js": "^1.50.1",
+    "@strata-foundation/chat-ui": "^3.9.12",
     "@strata-foundation/spl-utils": "^3.9.7",
     "@supercharge/promise-pool": "^2.3.0",
     "@testing-library/jest-dom": "^5.11.6",
