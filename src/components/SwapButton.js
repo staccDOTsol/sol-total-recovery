@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useState } from 'react';
 import {
   Tooltip,
@@ -10,7 +12,6 @@ import SwapHoriz from '@material-ui/icons/SwapHoriz';
 import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
 import Swap from '@project-serum/swap-ui';
 import { Provider } from '@project-serum/anchor';
-import { TokenListContainer } from '@solana/spl-token-registry';
 import { useTokenInfos } from '../utils/tokens/names';
 import { useSendTransaction } from '../utils/notifications';
 import { useWallet } from '../utils/wallet';
@@ -33,7 +34,7 @@ function SwapButtonDialog({ size }) {
   const connection = useConnection();
   const wallet = useWallet();
   const tokenInfos = useTokenInfos();
-  const tokenList = tokenInfos && new TokenListContainer(tokenInfos);
+  const tokenList = tokenInfos;
   const provider = new NotifyingProvider(connection, wallet, sendTransaction);
   return (
     <>
@@ -77,10 +78,10 @@ function SwapButtonPopover({ size }) {
   const connection = useConnection();
   const wallet = useWallet();
   const tokenInfos = useTokenInfos();
-  const tokenList = tokenInfos && new TokenListContainer(tokenInfos);
+//  const tokenList = tokenInfos && new TokenListContainer(tokenInfos);
   const provider = new NotifyingProvider(connection, wallet, sendTransaction);
   return (
-    tokenList && (
+    false && (
       <PopupState variant="popover">
         {(popupState) => (
           <div style={{ display: 'flex' }}>
@@ -105,7 +106,7 @@ function SwapButtonPopover({ size }) {
             >
               <Swap
                 provider={provider}
-                tokenList={tokenList}
+                tokenList={[]}
                 containerStyle={{ width: '432px' }}
               />
             </Popover>

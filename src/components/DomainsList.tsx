@@ -142,6 +142,7 @@ const TransferDialog = ({
     }
   };
   return (
+    // @ts-ignore
     <Modal
       style={{
         display: 'flex',
@@ -305,6 +306,7 @@ const DomainDialog = ({
 }) => {
   const classes = useStyles();
   return (
+    // @ts-ignore
     <Modal open={open} onClose={() => setOpen(false)} className={classes.modal}>
       <Paper className={classes.paper}>
         <AppBar position="sticky" color="default" elevation={1}>

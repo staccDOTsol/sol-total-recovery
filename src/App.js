@@ -127,7 +127,7 @@ const useStyles = makeStyles(() => ({
 function WalletSuggestionDialog({ open, onClose, onIgnore }) {
   const classes = useStyles();
   return (
-    <DialogForm open={open} onClose={onClose} fullWidth>
+    <DialogForm open={false} onClose={onClose} fullWidth>
       <DialogTitle>Looking for a Wallet?</DialogTitle>
       <DialogContent>
         <Typography>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useContext, useState, useEffect } from 'react';
 import EventEmitter from 'events';
 import {
@@ -9,7 +10,6 @@ import { useListener } from '../utils';
 import { clusterForEndpoint } from '../clusters';
 import { useCallback } from 'react';
 import { PublicKey } from '@solana/web3.js';
-import { TokenListProvider } from '@solana/spl-token-registry';
 
 // This list is used for deciding what to display in the popular tokens list
 // in the `AddTokenDialog`.
@@ -299,20 +299,8 @@ export function TokenRegistryProvider(props) {
   const { endpoint } = useConnectionConfig();
   const [tokenInfos, setTokenInfos] = useState(null);
   useEffect(() => {
+    return;
     if (endpoint !== MAINNET_BACKUP_URL && endpoint !== MAINNET_URL) return;
-    const tokenListProvider = new TokenListProvider();
-    tokenListProvider.resolve().then((tokenListContainer) => {
-      const cluster = clusterForEndpoint(endpoint);
-
-      const filteredTokenListContainer = tokenListContainer?.filterByClusterSlug(
-        cluster?.clusterSlug,
-      );
-      const tokenInfos =
-        tokenListContainer !== filteredTokenListContainer
-          ? filteredTokenListContainer?.getList()
-          : null; // Workaround for filter return all on unknown slug
-      setTokenInfos(tokenInfos);
-    });
   }, [endpoint]);
 
   return (

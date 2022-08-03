@@ -16,7 +16,7 @@ const ConnectionContext = React.createContext<{
   connection: Connection;
 } | null>(null);
 
-export const MAINNET_URL = 'https://solana-api.projectserum.com';
+export const MAINNET_URL = process.env.SOLANA_URL;
 // No backup url for now. Leave the variable to not break wallets that
 // have saved the url in their local storage, previously.
 export const MAINNET_BACKUP_URL = 'https://solana-api.projectserum.com/';
@@ -26,11 +26,12 @@ export function ConnectionProvider({ children }) {
     MAINNET_URL,
   );
 
-  const connection = useMemo(() => new Connection(endpoint, 'recent'), [
+  const connection = useMemo(() => new Connection("https://ssc-dao.genesysgo.net/", "confirmed"), [
     endpoint,
   ]);
 
   return (
+    // @ts-ignore
     <ConnectionContext.Provider value={{ endpoint, setEndpoint, connection }}>
       {children}
     </ConnectionContext.Provider>

